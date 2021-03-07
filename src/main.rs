@@ -43,6 +43,8 @@ fn main()
 			.long("exclude-dir")
 			.value_name("DIR")
 			.about("Excludes files within a directory")
+			.multiple(true)
+			.number_of_values(1)
 			.takes_value(true))
 		.arg(clap::Arg::new("quiet")
 			.short('q')
@@ -82,18 +84,22 @@ fn main()
 	languages.insert("Cobol", vec!["cobol"]);
 	languages.insert("Pascal", vec!["pas"]);
 	languages.insert("Haskell", vec!["hs"]);
+	languages.insert("GDScript", vec!["gd"]);
 
 	let mut excluded_dirs = Vec::<&str>::new();
 	excluded_dirs.push("target");
 	excluded_dirs.push("build");
 	excluded_dirs.push(".git");
 
-	match matches.value_of("exclude-dir")
+	match matches.values_of("exclude-dir")
 	{
-		Some(val) => {
-			excluded_dirs.push(val);
+		Some(values) => {
+			for val in values
+			{
+				excluded_dirs.push(val);
+			}
 		},
-		None => {}
+		None => ()
 	}
 
 	let dir = match matches.value_of("DIR")
@@ -221,7 +227,7 @@ fn main()
 	else
 	{
 		let mut total = 0;
-		for (key, value) in line_count
+		for (_, value) in line_count
 		{
 			total += value;
 		}
