@@ -14,7 +14,7 @@ fn count_lines_of_code(path: &Path) -> u32
 	let code = std::fs::read_to_string(path);
 
 	let mut lines = 0;
-	
+
 	match code
 	{
 		Ok(val) => {
@@ -89,6 +89,8 @@ fn main()
 	let mut excluded_dirs = Vec::<&str>::new();
 	excluded_dirs.push("target");
 	excluded_dirs.push("build");
+	excluded_dirs.push("bin");
+	excluded_dirs.push("dist");
 	excluded_dirs.push(".git");
 
 	match matches.values_of("exclude-dir")
@@ -104,9 +106,15 @@ fn main()
 
 	let dir = match matches.value_of("DIR")
 	{
-		Some(val) => val,
-		None => "."
+		Some(val) => Path::new(val),
+		None => Path::new(".")
 	};
+
+	if !dir.exists()
+	{
+		eprintln!("Directory \"{}\" not found.", dir.to_str().unwrap());
+		return;
+	}
 
 	let quiet = matches.is_present("quiet");
 
@@ -123,7 +131,7 @@ fn main()
 
 	let mut line_count = HashMap::<&str, u32>::new();
 	let mut dirs = Vec::<CodeDir>::new();
-	
+
 	for entry in WalkDir::new(dir)
 	{
 		let entry = entry.unwrap();
@@ -173,9 +181,7 @@ fn main()
 							let prev = line_count.get(lang);
 							match prev
 							{
-								Some(val) => {
-									line_count.insert(lang, lines + val);
-								},
+								Some(val) => { line_count.insert(lang, lines + val); },
 								None => { line_count.insert(lang, lines); }
 							}
 						}
@@ -220,7 +226,7 @@ fn main()
 			println!("{:<2$} {}", key, value, size.0 - value.to_string().len() - 2);
 			total += value;
 		}
-	
+
 		println!("{}\n", "-".repeat(size.0 - 1));
 		println!("{:<2$} {}", "Total:", total, size.0 - total.to_string().len() - 2);
 	}
@@ -235,3 +241,4 @@ fn main()
 		println!("{}", total);
 	}
 }
+
