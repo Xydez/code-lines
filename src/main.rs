@@ -9,7 +9,10 @@ struct CodeDir {
 }
 
 fn count_lines_of_code(path: &Path) -> Result<usize, std::io::Error> {
-    Ok(std::fs::read_to_string(path)?.chars().filter(|c| c == &'\n').count())
+    Ok(std::fs::read_to_string(path)?
+        .chars()
+        .filter(|c| c == &'\n')
+        .count())
 }
 
 fn main() {
@@ -138,26 +141,27 @@ fn main() {
         }
 
         if let Some(ext) = path.extension().map(|v| v.to_str().unwrap()) {
-            if let Some((lang_name, _)) = languages.iter().find(|(_, lang_exts)| lang_exts.contains(&ext)) {
+            if let Some((lang_name, _)) = languages
+                .iter()
+                .find(|(_, lang_exts)| lang_exts.contains(&ext))
+            {
                 match count_lines_of_code(&path) {
                     Ok(lines) => {
                         let dir = CodeDir {
                             path: String::from(path.to_str().unwrap()),
-                            lines
+                            lines,
                         };
 
                         dirs.push(dir);
 
                         match line_count.get_mut(lang_name) {
-                            Some(prev_lines) => {
-                                *prev_lines += lines
-                            },
+                            Some(prev_lines) => *prev_lines += lines,
                             None => {
                                 line_count.insert(lang_name, lines);
                             }
                         }
-                    },
-                    Err(err) => eprintln!("Error: {}", err)
+                    }
+                    Err(err) => eprintln!("Error: {}", err),
                 }
             }
         }
